@@ -22,6 +22,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Arrays;
+
+import static org.casbin.jcasbin.util.Util.splitCommaDelimited;
 
 /**
  * Policy represents the whole access control policy user defined.
@@ -187,6 +190,16 @@ public class Policy {
             List<List<String>> policy = assertion.policy;
             int priorityIndex = assertion.priorityIndex;
 
+            String line = ptype + "," + String.join(",", rule);
+            if ("".equals(line)) {
+                return false;
+            }
+            if (line.charAt(0) == '#') {
+                return false;
+            }
+            String[] tokens = splitCommaDelimited(line);
+            List<String> linePolicy = Arrays.asList(Arrays.copyOfRange(tokens, 1, tokens.length));
+
             // ensure the policies is ordered by priority value
             if ("p".equals(sec) && priorityIndex >= 0) {
                 int value = Integer.parseInt(rule.get(priorityIndex));
@@ -200,13 +213,13 @@ public class Policy {
                         right = mid;
                     }
                 }
-                policy.add(left, rule);
+                policy.add(left, linePolicy);
                 for (int i = left; i < assertion.policy.size(); ++i) {
                     assertion.policyIndex.put(assertion.policy.get(i).toString(), i);
                 }
             } else {
-                policy.add(rule);
-                assertion.policyIndex.put(rule.toString(), policy.size() - 1);
+                policy.add(linePolicy);
+                assertion.policyIndex.put(linePolicy.toString(), policy.size() - 1);
             }
 
             return true;
