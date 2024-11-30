@@ -329,7 +329,7 @@ public class Util {
     }
 
     public static boolean hasEval(String exp) {
-        return evalReg.matcher(exp).matches();
+        return evalReg.matcher(exp).find();
     }
 
     public static String replaceEval(String s, String replacement) {

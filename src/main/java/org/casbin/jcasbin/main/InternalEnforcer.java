@@ -74,14 +74,13 @@ class InternalEnforcer extends CoreEnforcer {
      * addPolicy adds a rule to the current policy.
      */
     boolean addPolicy(String sec, String ptype, List<String> rule) {
-        List<String> modifiedRule = splitCommaDelimitedList(rule);
 
         if (mustUseDispatcher()) {
-            dispatcher.addPolicies(sec, ptype, singletonList(modifiedRule));
+            dispatcher.addPolicies(sec, ptype, singletonList(rule));
             return true;
         }
 
-        if (model.hasPolicy(sec, ptype, modifiedRule)) {
+        if (model.hasPolicy(sec, ptype, rule)) {
             return false;
         }
 
@@ -96,11 +95,11 @@ class InternalEnforcer extends CoreEnforcer {
             }
         }
 
-        model.addPolicy(sec, ptype, modifiedRule);
+        model.addPolicy(sec, ptype, rule);
 
-        buildIncrementalRoleLinks(sec, ptype, singletonList(modifiedRule), Model.PolicyOperations.POLICY_ADD);
+        buildIncrementalRoleLinks(sec, ptype, singletonList(rule), Model.PolicyOperations.POLICY_ADD);
 
-        return notifyWatcher(sec, ptype, singletonList(modifiedRule), WatcherEx.UpdateType.UpdateForAddPolicy);
+        return notifyWatcher(sec, ptype, singletonList(rule), WatcherEx.UpdateType.UpdateForAddPolicy);
     }
 
 
@@ -159,10 +158,9 @@ class InternalEnforcer extends CoreEnforcer {
      * removePolicy removes a rule from the current policy.
      */
     boolean removePolicy(String sec, String ptype, List<String> rule) {
-        List<String> modifiedRule = splitCommaDelimitedList(rule);
 
         if (mustUseDispatcher()) {
-            dispatcher.removePolicies(sec, ptype, singletonList(modifiedRule));
+            dispatcher.removePolicies(sec, ptype, singletonList(rule));
             return true;
         }
 
@@ -177,15 +175,15 @@ class InternalEnforcer extends CoreEnforcer {
             }
         }
 
-        boolean ruleRemoved = model.removePolicy(sec, ptype, modifiedRule);
+        boolean ruleRemoved = model.removePolicy(sec, ptype, rule);
 
         if (!ruleRemoved) {
             return false;
         }
 
-        buildIncrementalRoleLinks(sec, ptype, singletonList(modifiedRule), Model.PolicyOperations.POLICY_REMOVE);
+        buildIncrementalRoleLinks(sec, ptype, singletonList(rule), Model.PolicyOperations.POLICY_REMOVE);
 
-        return notifyWatcher(sec, ptype, singletonList(modifiedRule), WatcherEx.UpdateType.UpdateForRemovePolicy);
+        return notifyWatcher(sec, ptype, singletonList(rule), WatcherEx.UpdateType.UpdateForRemovePolicy);
     }
 
     /**
@@ -198,11 +196,9 @@ class InternalEnforcer extends CoreEnforcer {
      * @return succeeds or not.
      */
     boolean updatePolicy(String sec, String ptype, List<String> oldRule, List<String> newRule) {
-        List<String> modifiedOldRule = splitCommaDelimitedList(oldRule);
-        List<String> modifiedNewRule = splitCommaDelimitedList(newRule);
 
         if (mustUseDispatcher()) {
-            dispatcher.updatePolicy(sec, ptype, modifiedOldRule, modifiedNewRule);
+            dispatcher.updatePolicy(sec, ptype, oldRule, newRule);
             return true;
         }
 
@@ -219,7 +215,7 @@ class InternalEnforcer extends CoreEnforcer {
             }
         }
 
-        boolean ruleUpdated = model.updatePolicy(sec, ptype, modifiedOldRule, modifiedNewRule);
+        boolean ruleUpdated = model.updatePolicy(sec, ptype, oldRule, newRule);
 
         if (!ruleUpdated) {
             return false;
@@ -250,7 +246,7 @@ class InternalEnforcer extends CoreEnforcer {
         if (watcher != null && autoNotifyWatcher) {
             try {
                 if (watcher instanceof WatcherUpdatable) {
-                    ((WatcherUpdatable) watcher).updateForUpdatePolicy(modifiedOldRule, modifiedNewRule);
+                    ((WatcherUpdatable) watcher).updateForUpdatePolicy(oldRule, newRule);
                 } else {
                     watcher.update();
                 }
